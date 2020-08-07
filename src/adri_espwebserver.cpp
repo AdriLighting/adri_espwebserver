@@ -1,7 +1,6 @@
 #include "adri_espwebserver.h"
 
 #include <adri_tools.h>
-#include <adri_wifi.h>
 
 
 #define DBG_OUTPUT_PORT Serial
@@ -587,9 +586,7 @@ void adri_webserver::handleFileList() {
 	}
 
 	String path = _server.arg("dir");
-	if (path != "/" && !_fs->exists(path)) {
-		return replyBadRequest("BAD PATH");
-	}
+	// if ((path != "/") || (!_fs->exists(path))) {
 
 	#ifdef DEBUG
 		DBG_OUTPUT_PORT.println(String("handleFileList: ") + path);
