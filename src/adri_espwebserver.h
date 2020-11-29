@@ -19,14 +19,23 @@
 	#include <adri_webserver_parsecommand.h>
 
 	#include <adri_webserver_reponse.h>
+	
+	#include "config.h"
+	#ifdef ESPUI
+		#include "adri_espwebserver_ui.h"
+	#endif
 
 	#define FSB_BROWSER
 
 	String checkForUnsupportedPath(String filename) ;
 
+	#ifdef ESPUI
+		extern ADRIEsp_ui esp_ui;
+	#endif
 
 	class adri_webserver
 	{
+
 	private:
         FS * 			_fs;
         bool 			_fsOk;
@@ -35,8 +44,8 @@
 		void 	getUrl(String * uri);
         void 	handleRoot();
         void 	handleNotFound();
-	    bool 	handleFileRead(String path);
         void 	handleStatus();  
+        String 	sendNetworkStatus();  
         void 	handleFileList();  
 
         #ifdef FSB_BROWSER
@@ -50,16 +59,23 @@
         
 
     public:
-  		ESP8266WebServer _server; 
+  		ESP8266WebServer 	_server; 
 
     	adri_webserver(int port);
+    	
 
+    	#ifdef ESPUI
+        void 	espui_initialize();  
+        #endif
+	    bool 	handleFileRead(String path);
         void 	handleLoop();  
         void 	request_param_get(String * result);
         void 	initialize(int port);
         void 	filesystem_set(FS * fs);  
         void 	filesystem_ok(bool val);  
+		void 	begin();
 
+		void 	handleJson(String json);
 		void 	replyOK();
 		void 	replyOKWithMsg(String msg);
 		void 	replyNotFound(String msg);
@@ -71,13 +87,21 @@
 	{
 
 	public:
-		WebSocketsServer 		_socket;		
-		boolean isConnected 	= false;
-		uint8_t _num			= 0;
+		WebSocketsServer	_socket;		
+		boolean 			_isConnected 	= false;
+		uint8_t 			_num			= 0;
+
 		adri_socket(int port);
+		adri_socket(int port, String espUi);
+
+    	#ifdef ESPUI
+        void espui_initialize();  
+        #endif
+
 		void parse(String);
 		void setup();
 		void loop();
+		boolean isConnected();
 		void broadcastTXT(String);
 		void sendTXT(uint8_t, String);
 		void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length);

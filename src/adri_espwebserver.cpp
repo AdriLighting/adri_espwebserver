@@ -1,9 +1,11 @@
 #include "adri_espwebserver.h"
 
+
 #include <adri_tools.h>
 
 
 #define DBG_OUTPUT_PORT Serial
+// #define DEBUG
 
 const char* fsName = "SPIFFS";
 SPIFFSConfig fileSystemConfig = SPIFFSConfig();
@@ -16,8 +18,10 @@ static const char FILE_NOT_FOUND[] PROGMEM = "FileNotFound";
 
 using namespace std::placeholders;
 
-
-
+#ifdef ESPUI
+	ADRIEsp_ui esp_ui(10); 
+#endif
+	
 adri_socketClient::adri_socketClient()
 {
 }
@@ -76,7 +80,7 @@ void adri_socketClient::parse(String msg) {
 
 	String op 		= literal_value("op", 	msg);
 	String value 	= literal_value("cmd", 	msg);
-	// Serial.printf("\n[parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
+	Serial.printf("\n[parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
 	for (int i = 0; i < requestReponse_cnt; ++i)
@@ -101,7 +105,7 @@ void adri_socketClient::parse(String msg) {
 			uri.remove(0, 1);
 			parseRequest = "&" + uri + "=";
 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(); 
+			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
 			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
 
 			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
@@ -122,10 +126,17 @@ void adri_socketClient::parse(String msg) {
 
 
 
-
-adri_socket::adri_socket(int port) : _socket(port)
+adri_socket::adri_socket(int port, String espUi) : _socket(port, "", "arduino")
 {
 }
+adri_socket::adri_socket(int port) : _socket(port, "", "arduino")
+{
+}
+
+#ifdef ESPUI
+void adri_socket::espui_initialize(){esp_ui.socket_initialize(&_socket);}
+#endif
+
 void adri_socket::setup() {
     _socket.begin();
     _socket.onEvent(std::bind(&adri_socket::webSocketEvent, this, _1, _2, _3, _4));
@@ -140,7 +151,7 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
     switch(type) {
         case WStype_DISCONNECTED:
             DBG_OUTPUT_PORT.printf("[%u] Disconnected!\n", num);
-            isConnected = false;
+            _isConnected = false;
             break;
         case WStype_CONNECTED:
             {
@@ -149,12 +160,16 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
 				_num = num;
 				// send message to client
 				// _socket.sendTXT(num, "Connected");
+				
+				#ifdef ESPUI
+				esp_ui.handleWebpage();
+				#endif
 
-				isConnected = true;
+				_isConnected = true;
             }
             break;
         case WStype_TEXT:
-            // DBG_OUTPUT_PORT.printf("[%u] get Text: %s\n", num, payload);
+            DBG_OUTPUT_PORT.printf("[%u] get Text: %s\n", num, payload);
             char buff[100];
             sprintf(buff, "%s", payload);
 			_num = num;
@@ -182,11 +197,16 @@ void adri_socket::broadcastTXT(String msg) {
 void adri_socket::sendTXT(uint8_t num, String msg) {
 	_socket.sendTXT(num, msg);
 }
+boolean adri_socket::isConnected() {
+	return _isConnected;
+}
+
 void adri_socket::parse(String msg) {
 
 	String op 		= literal_value("op", 	msg);
 	String value 	= literal_value("cmd", 	msg);
-	// Serial.printf("\n[parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
+	Serial.printf("\n[adri_socket::parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
+	String sOp = "op";
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
 	for (int i = 0; i < requestReponse_cnt; ++i)
@@ -195,6 +215,7 @@ void adri_socket::parse(String msg) {
 		if (requestReponse_array[i]->_protocol != requestProtocol_socket) continue;
 
 		String reponse;
+		String sOp;
 
 		String parseRequest = value;
 
@@ -210,7 +231,7 @@ void adri_socket::parse(String msg) {
 			uri.remove(0, 1);
 			parseRequest = "&" + uri + "=";
 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(); 
+			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
 			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
 
 			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
@@ -218,9 +239,15 @@ void adri_socket::parse(String msg) {
 
 		if (requestReponse_array[pos]->_mod == requestType_wParam) {
 
+			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
 			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
 
 			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
+			if (requestReponse_array[pos]->_reponseMod 	== requestReponseType_jsonFromList) {
+				requestReponse_reponse_fromList(pos, sOp, &reponse);
+				// fsprintf("\nreposne: %d\n%S\n",cnt, reponse.c_str());				
+			}	
+						
 		}
 
 		break;
@@ -233,6 +260,10 @@ void adri_socket::parse(String msg) {
 adri_webserver::adri_webserver(int port) : _server(port) {
 	_fsOk = true;
 }
+
+#ifdef ESPUI
+	void adri_webserver::espui_initialize(){esp_ui.server_initialize(&_server);}
+#endif
 
 void adri_webserver::filesystem_set(FS * fs){
 	_fs = fs;
@@ -282,7 +313,12 @@ void adri_webserver::initialize (int port) {
 	unsupportedFiles.replace("\n", "<br/>");
 	unsupportedFiles = unsupportedFiles.substring(0, unsupportedFiles.length() - 5);
 
-	_server.on("/", 		std::bind(&adri_webserver::handleRoot, 	this));
+	// 
+	#ifdef ESPUI
+		esp_ui.begin();
+	#else
+		_server.on("/", 		std::bind(&adri_webserver::handleRoot, 	this));
+	#endif
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
 	for (int i = 0; i < requestReponse_cnt; ++i)
@@ -293,6 +329,7 @@ void adri_webserver::initialize (int port) {
 		_server.on(requestReponse_array[i]->_name, HTTP_GET, [this]() {
 
 			String reponse;
+			String op = "op";
 
 			String parseRequest;
 			request_param_get(&parseRequest);
@@ -308,12 +345,12 @@ void adri_webserver::initialize (int port) {
 				uri.remove(0, 1);
 				parseRequest = "&" + uri + "=";
 
-				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(); 
+				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
 				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
 
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromList) {
-					boolean cnt = requestReponse_reponse_fromList(pos, "op", &reponse);				
+					boolean cnt = requestReponse_reponse_fromList(pos, op, &reponse);				
 					if (cnt) _server.send(200, "application/json", reponse);
 					else {
 						request_http_noreponse_set_json(&reponse);
@@ -321,7 +358,7 @@ void adri_webserver::initialize (int port) {
 					}
 				}
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromListForce) {
-					requestReponse_reponse_fromListForce(pos, "op", &reponse);		
+					requestReponse_reponse_fromListForce(pos, op, &reponse);		
 					_server.send(200, "application/json", reponse);
 				}		
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
@@ -335,7 +372,7 @@ void adri_webserver::initialize (int port) {
 
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromList) {
-					boolean cnt = requestReponse_reponse_fromList(pos, "op", &reponse);				
+					boolean cnt = requestReponse_reponse_fromList(pos, op, &reponse);				
 					if (cnt) _server.send(200, "application/json", reponse);
 					else {
 						request_http_noreponse_set_json(&reponse);
@@ -343,7 +380,7 @@ void adri_webserver::initialize (int port) {
 					}
 				}
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromListForce) {
-					requestReponse_reponse_fromListForce(pos, "op", &reponse);		
+					requestReponse_reponse_fromListForce(pos, op, &reponse);		
 					_server.send(200, "application/json", reponse);
 				}
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
@@ -358,6 +395,8 @@ void adri_webserver::initialize (int port) {
 
 	_server.on("/request_reset", HTTP_GET, [this]() {
 		_server.send(200, "text/plain", "reset");
+		delay(1000);
+		ESP.reset();
 	});
 
 	_server.on("/status", 	HTTP_GET, 		std::bind(&adri_webserver::handleStatus, 		this));
@@ -372,9 +411,7 @@ void adri_webserver::initialize (int port) {
 
 	_server.onNotFound(std::bind(&adri_webserver::handleNotFound, this));
 	
-	_server.begin();
-
-	Serial.println("HTTP _server started on port ");
+	// Serial.println("HTTP _server started on port ");
 }
 void adri_webserver::getUrl(String * uri) {
 	* uri = ESP8266WebServer::urlDecode(_server.uri());
@@ -382,7 +419,9 @@ void adri_webserver::getUrl(String * uri) {
 void adri_webserver::handleLoop() {
 	_server.handleClient();
 }
-
+void adri_webserver::begin() {
+	_server.begin();
+}
 ////////////////////////////////
 // Utils to return HTTP codes, and determine content-type
 
@@ -414,11 +453,24 @@ void adri_webserver::replyServerError(String msg) {
 
 
 void adri_webserver::handleRoot() {
+
+	if (!_fsOk) {
+		return replyServerError(FPSTR(FS_INIT_ERROR));
+	}
+
+	String uri = ESP8266WebServer::urlDecode(_server.uri()); // required to read paths with blanks
+
+	if (handleFileRead(uri)) {
+		return;
+	}
+	return replyNotFound(FPSTR(FILE_NOT_FOUND));
+
+/*
 	// handleFileRead("/index.htm");
  	 // _server.send(200, "text/html", "/index.htm");
  	String path = "/index.htm";
  	#ifdef DEBUG
-		DBG_OUTPUT_PORT.println(String("handleFileRead: ") + path);
+		DBG_OUTPUT_PORT.println(String("\n[handleRoot]: ") + path);
 	#endif
 	if (!_fsOk) {
 		replyServerError(FPSTR(FS_INIT_ERROR));
@@ -444,7 +496,7 @@ void adri_webserver::handleRoot() {
 		File file = _fs->open(path, "r");
 		if (_server.streamFile(file, contentType) != file.size()) {
 			#ifdef DEBUG
-				DBG_OUTPUT_PORT.println("Sent less data than expected!");
+				DBG_OUTPUT_PORT.println(String("\n[Sent less data than expected!]\n"));
 			#endif
 		}
 		file.close();
@@ -452,6 +504,7 @@ void adri_webserver::handleRoot() {
 	}
 
 	return ;
+*/
 }
 
 /*
@@ -471,29 +524,30 @@ void adri_webserver::handleNotFound() {
 	}
 
 	// Dump debug data
-	String message;
-	message.reserve(100);
-	message = F("Error: File not found\n\nURI: ");
-	message += uri;
-	message += F("\nMethod: ");
-	message += (_server.method() == HTTP_GET) ? "GET" : "POST";
-	message += F("\nArguments: ");
-	message += _server.args();
-	message += '\n';
-	for (uint8_t i = 0; i < _server.args(); i++) {
-		message += F(" NAME:");
-		message += _server.argName(i);
-		message += F("\n VALUE:");
-		message += _server.arg(i);
-		message += '\n';
-	}
-	message += "path=";
-	message += _server.arg("path");
-	message += '\n';
-	#ifdef DEBUG
-		DBG_OUTPUT_PORT.print(message);
-	#endif
-	return replyNotFound(message);
+	// String message;
+	// message.reserve(100);
+	// message = F("Error: File not found\n\nURI: ");
+	// message += uri;
+	// message += F("\nMethod: ");
+	// message += (_server.method() == HTTP_GET) ? "GET" : "POST";
+	// message += F("\nArguments: ");
+	// message += _server.args();
+	// message += '\n';
+	// for (uint8_t i = 0; i < _server.args(); i++) {
+	// 	message += F(" NAME:");
+	// 	message += _server.argName(i);
+	// 	message += F("\n VALUE:");
+	// 	message += _server.arg(i);
+	// 	message += '\n';
+	// }
+	// message += "path=";
+	// message += _server.arg("path");
+	// message += '\n';
+	// #ifdef DEBUG
+	// 	DBG_OUTPUT_PORT.print(message);
+	// #endif 
+	return replyNotFound(FPSTR(FILE_NOT_FOUND));	
+	// return replyNotFound(message);
 }
 
 /*
@@ -501,7 +555,7 @@ void adri_webserver::handleNotFound() {
 */
 bool adri_webserver::handleFileRead(String path) {
 	#ifdef DEBUG
-		DBG_OUTPUT_PORT.println(String("handleFileRead: ") + path);
+		DBG_OUTPUT_PORT.println(String("\n[handleFileRead]: ") + path);
 	#endif	
 	if (!_fsOk) {
 		replyServerError(FPSTR(FS_INIT_ERROR));
@@ -539,38 +593,95 @@ bool adri_webserver::handleFileRead(String path) {
 
 ////////////////////////////////
 // Request handlers
-
 /*
 	 Return the FS type, status and size info
 */
-void adri_webserver::handleStatus() {
+void adri_webserver::handleJson(String json) {
 	#ifdef DEBUG
-		DBG_OUTPUT_PORT.println("handleStatus");
+		DBG_OUTPUT_PORT.println("handleJson");
 	#endif
-	FSInfo fs_info;
-	String json;
-	json.reserve(128);
-
-	json = "{\"type\":\"";
-	json += fsName;
-	json += "\", \"isOk\":";
-	if (_fsOk) {
-		_fs->info(fs_info);
-		json += F("\"true\", \"totalBytes\":\"");
-		json += fs_info.totalBytes;
-		json += F("\", \"usedBytes\":\"");
-		json += fs_info.usedBytes;
-		json += "\"";
-	} else {
-		json += "\"false\"";
-	}
-	json += F(",\"unsupportedFiles\":\"");
-	json += unsupportedFiles;
-	json += "\"}";
 
 	_server.send(200, "application/json", json);
 }
 
+/*
+	 Return the FS type, status and size info
+*/
+
+String adri_webserver::sendNetworkStatus()
+{
+	// if (isAdmin(request) == false) return;
+	uint8_t mac[6];
+	char macStr[18] = { 0 };
+	WiFi.macAddress(mac);
+	sprintf(macStr, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+	String state = "N/A";
+	String Networks = "";
+	if (WiFi.status() == 0) state = "Idle";
+	else if (WiFi.status() == 1) state = "NO SSID AVAILBLE";
+	else if (WiFi.status() == 2) state = "SCAN COMPLETED";
+	else if (WiFi.status() == 3) state = "CONNECTED";
+	else if (WiFi.status() == 4) state = "CONNECT FAILED";
+	else if (WiFi.status() == 5) state = "CONNECTION LOST";
+	else if (WiFi.status() == 6) state = "DISCONNECTED";
+
+	Networks = "";  //future to scan and show networks async
+
+	String wifilist = "";
+	wifilist += "WiFi State: " + state + "<br>";
+	wifilist += "Scanned Networks <br>" + Networks + "<br>";
+
+	String values = "<body> ";
+	values += "SSID            	:  " + (String)WiFi.SSID()          + "<br>";
+	values += "IP Address      	:  " + (String)WiFi.localIP()[0]    + "." + (String)WiFi.localIP()[1]      + "." + (String)WiFi.localIP()[2]      + "." + (String)WiFi.localIP()[3]      + "<br>";
+	values += "Wifi Gateway    	:  " + (String)WiFi.gatewayIP()[0]  + "." + (String)WiFi.gatewayIP()[1]    + "." + (String)WiFi.gatewayIP()[2]    + "." + (String)WiFi.gatewayIP()[3]    + "<br>";
+	values += "NetMask         	:  " + (String)WiFi.subnetMask()[0] + "." + (String)WiFi.subnetMask()[1]   + "." + (String)WiFi.subnetMask()[2]   + "." + (String)WiFi.subnetMask()[3]   + "<br>";
+	values += "Mac Address     	>  " + String(macStr) + "<br>";
+	// values += "NTP Time       :   " + String(hour()) + ":" + String(minute()) + ":" + String(second()) + " " + String(year()) + "-" + String(month()) + "-" + String(day()) + "<br>";
+	values += "Server Uptime   	:  " + String(millis() / 60000)     + " minutes" + "<br>";
+	values += "Server Heap     	:  " + String(ESP.getFreeHeap())    + "<br>";
+	if (_fsOk) {
+	FSInfo fs_info;
+	_fs->info(fs_info);
+	values += "SPIIFS<br>";
+	values += "TotalBytes		:  " + String(fs_info.totalBytes) + "<br>";
+	values += "UsedBytes		:  " + String(fs_info.usedBytes) + "<br>";
+	values += "FreeBytes		:  " + String(fs_info.totalBytes-fs_info.usedBytes) + "<br>";
+	}
+	values += wifilist;
+	values += " <input action=\"action\" type=\"button\" value=\"Back\" onclick=\"history.go(-1);\" style=\"width: 100px; height: 50px;\" /> </body> ";
+	return values;
+}
+void adri_webserver::handleStatus() {
+	// #ifdef DEBUG
+	// 	DBG_OUTPUT_PORT.println("handleStatus");
+	// #endif
+	// FSInfo fs_info;
+	// String json;
+	// json.reserve(128);
+
+	// json = "{\"type\":\"";
+	// json += fsName;
+	// json += "\", \"isOk\":";
+	// if (_fsOk) {
+	// 	_fs->info(fs_info);
+	// 	json += F("\"true\", \"totalBytes\":\"");
+	// 	json += fs_info.totalBytes;
+	// 	json += F("\", \"usedBytes\":\"");
+	// 	json += fs_info.usedBytes;
+	// 	json += "\"";
+	// } else {
+	// 	json += "\"false\"";
+	// }
+	// json += F(",\"unsupportedFiles\":\"");
+	// json += unsupportedFiles;
+	// json += "\"}";
+
+	// _server.send(200, "application/json", json);
+
+	_server.send(200, "text/html", sendNetworkStatus());
+}
 
 /*
 	 Return the list of files in the directory specified by the "dir" query string parameter.
