@@ -34,16 +34,16 @@ void setup() {
 	if (!wifi_credential_sta_fromSPIFF()) { 	
 		wifi_credential_set(
 			1, 						
-			"freebox_123_EXTBAS",	
-			"phcaadax", 			
+			"xxx",	
+			"xxx", 			
 			"",						
 			"",						
 			""						
 		);
 		wifi_credential_set(
 			0, 						
-			"freebox_123_EXT", 		
-			"phcaadax", 			
+			"xxx", 		
+			"xxx", 			
 			"",						
 			"",						
 			""						
