@@ -24,7 +24,7 @@ void setup() {
 	delay(1000);
 	fsprintf("\n");
 
-	SPIFFS.begin();
+	LittleFS.begin();
 
 	// REGION WIFI
 	myWifi 		= new wifiConnect();
@@ -72,7 +72,7 @@ void setup() {
 	fsprintf("\n[myWifiConnectDone] : %s\n", on_time().c_str());
 
 	clientServer.filesystem_ok(true); 		// ENABLED FILE SYSTEM BROWSER
-	clientServer.filesystem_set(&SPIFFS);
+	clientServer.filesystem_set(&LittleFS);
 
 	clientServer.initialize(80);
 	clientServer.begin();
@@ -80,9 +80,9 @@ void setup() {
 	fsprintf("\n[adri_webserver request]\n");
 	fsprintf("\t %-15s : index.htm\n", 		fsget(request_handleRoot).c_str());
 	fsprintf("\t %-15s : ESP Reset\n", 		fsget(request_espRest).c_str());
-	fsprintf("\t %-15s : SPIFFS Editor\n", 	fsget(request_spiffsEdit).c_str());
-	fsprintf("\t %-15s : SPIFFS List\n",	fsget(request_spiffsList).c_str());
-	fsprintf("\t %-15s : SPIFFS Statu\n",	fsget(request_spiffsStatu).c_str());
+	fsprintf("\t %-15s : LittleFS Editor\n", 	fsget(request_spiffsEdit).c_str());
+	fsprintf("\t %-15s : LittleFS List\n",	fsget(request_spiffsList).c_str());
+	fsprintf("\t %-15s : LittleFS Statu\n",	fsget(request_spiffsStatu).c_str());
 
 	// SEE WITH "adri_webserver_reponse" Example for adding request
 

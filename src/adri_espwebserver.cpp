@@ -7,8 +7,8 @@
 #define DBG_OUTPUT_PORT Serial
 // #define DEBUG
 
-const char* fsName = "SPIFFS";
-SPIFFSConfig fileSystemConfig = SPIFFSConfig();
+const char* fsName = "LittleFS";
+LittleFSConfig fileSystemConfig = LittleFSConfig();
 
 String unsupportedFiles = String();
 
@@ -68,6 +68,8 @@ void adri_socketClient::webSocketEvent(WStype_t type, uint8_t * payload, size_t 
             break;
         case WStype_PONG:
             break;
+        default:
+        	break;
     }
 
 }
@@ -188,6 +190,7 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
             // send message to client
             // _socket.sendBIN(num, payload, length);
             break;
+        default: break;
     }
 
 }
@@ -1028,7 +1031,7 @@ void adri_webserver::handleGetEdit() {
 #endif
 
 /*
-	 Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on SPIFFS).
+	 Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on LittleFS).
 	 Returns an empty String if supported, or detail of error(s) if unsupported
 */
 String checkForUnsupportedPath(String filename) {

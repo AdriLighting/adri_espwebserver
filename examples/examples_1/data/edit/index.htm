@@ -258,7 +258,7 @@ the sketch after each change to this file.
     </style>
     <script>
       var tree;   // needed by editor to refresh file size on save
-      var fsInfo; // needed to change refreshPath behaviour on SPIFFS
+      var fsInfo; // needed to change refreshPath behaviour on LittleFS
       /////////////////////////
       // UTILS
 
@@ -304,7 +304,7 @@ the sketch after each change to this file.
               status += "<span style='background-color:red;color:white;font-weight:bold'>INIT ERROR !</span>";
             }
             document.getElementById("status").innerHTML = status;
-            if (fsInfo.type != "SPIFFS") {
+            if (fsInfo.type != "LittleFS") {
               document.getElementById("mkdir").style.display = "inline";
             }
           }
@@ -782,8 +782,8 @@ the sketch after each change to this file.
          * This is done by pushing all paths to be refreshed in an array that will be pop'd in the callback function
          */
         this.refreshPath = function(path){
-          if (fsInfo.type == "SPIFFS") {
-            // on SPIFFS : No parent node => refresh full tree
+          if (fsInfo.type == "LittleFS") {
+            // on LittleFS : No parent node => refresh full tree
             console.log("Refreshing '/'...");
             httpList("/");
           }

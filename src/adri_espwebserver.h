@@ -15,6 +15,8 @@
 
 	#include <ArduinoOTA.h>
 
+	#include <LittleFS.h>
+
 	#include <adri_webserver_reponselist.h>
 	#include <adri_webserver_parsecommand.h>
 
