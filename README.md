@@ -1,7 +1,7 @@
 # adri_espwebserver
 
 - Librairie pour compléter ESP826WebServer.
-- Facilite la configuration de requête.
+- Facilite la configuration du serveur et des requête.
 - Automatise le traitement des requêtes.
 
 <pre>
