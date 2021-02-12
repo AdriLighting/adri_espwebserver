@@ -1,8 +1,9 @@
 #include <adri_espwebserver.h>
 #include <adri_espwebserver_tools.h>
 #include <adri_wifiConnect.h>
-#include <adri_tools.h>
+#include <adri_tools_v2.h>
 #include <adri_timer.h>
+#include "secret.h"
 
 adri_webserver		clientServer(80); // instance adri_webserver 	- ESP8266WebServer _server
 adri_socket			socketServer(81); // instance adri_socket 		- WebSocketsServer _socket
@@ -29,13 +30,13 @@ void setup() {
 	// REGION WIFI
 	myWifi 		= new wifiConnect();
 	myWifiAp 	= new wifi_credential_ap("");
-	myWifiAp->hostname_set(ch_toString(myWifiHostname));
+	myWifiAp->hostname_set(adri_toolsv2Ptr_get()->ch_toString(myWifiHostname));
 	wifi_credential_ap_register(myWifiAp);
 	if (!wifi_credential_sta_fromSPIFF()) { 	
 		wifi_credential_set(
 			1, 						
-			"xxx",	
-			"xxx", 			
+			SECRET_SSID,	
+			SECRET_PASS, 			
 			"",						
 			"",						
 			""						
@@ -69,7 +70,7 @@ void setup() {
 	if(!myWifiOTA) 	myWifi->MDSN_begin	();
 	else 			arduinoOTA_setup	(myWifiHostname);
 	wifi_connect_statu 					();
-	fsprintf("\n[myWifiConnectDone] : %s\n", on_time().c_str());
+	fsprintf("\n[myWifiConnectDone] : %s\n", adri_toolsv2Ptr_get()->on_time().c_str());
 
 	clientServer.filesystem_ok(true); 		// ENABLED FILE SYSTEM BROWSER
 	clientServer.filesystem_set(&LittleFS);
@@ -78,11 +79,11 @@ void setup() {
 	clientServer.begin();
 
 	fsprintf("\n[adri_webserver request]\n");
-	fsprintf("\t %-15s : index.htm\n", 		fsget(request_handleRoot).c_str());
-	fsprintf("\t %-15s : ESP Reset\n", 		fsget(request_espRest).c_str());
-	fsprintf("\t %-15s : LittleFS Editor\n", 	fsget(request_spiffsEdit).c_str());
-	fsprintf("\t %-15s : LittleFS List\n",	fsget(request_spiffsList).c_str());
-	fsprintf("\t %-15s : LittleFS Statu\n",	fsget(request_spiffsStatu).c_str());
+	fsprintf("\t %-15s : index.htm\n", 			fsget(request_handleRoot).c_str());
+	fsprintf("\t %-15s : ESP Reset\n", 			fsget(request_espRest).c_str());
+	fsprintf("\t %-15s : LittleFS Editor\n",	fsget(request_spiffsEdit).c_str());
+	fsprintf("\t %-15s : LittleFS List\n",		fsget(request_spiffsList).c_str());
+	fsprintf("\t %-15s : LittleFS Statu\n",		fsget(request_spiffsStatu).c_str());
 
 	// SEE WITH "adri_webserver_reponse" Example for adding request
 

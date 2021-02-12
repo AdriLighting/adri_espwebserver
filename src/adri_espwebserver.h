@@ -7,7 +7,6 @@
 	#include <WiFiClient.h>
 	#include <ESP8266WebServer.h>
 	#include <ESP8266mDNS.h>
-	#include <SPI.h>
 
 	#include <WebSockets.h>           
 	#include <WebSocketsServer.h>
@@ -85,13 +84,15 @@
 		void 	replyServerError(String msg);        
 	};
 
+	typedef void (*adri_socket_func)();  
 	class adri_socket
 	{
 
 	public:
+		adri_socket_func 	_whenIsConnected  	= NULL;	
 		WebSocketsServer	_socket;		
-		boolean 			_isConnected 	= false;
-		uint8_t 			_num			= 0;
+		boolean 			_isConnected 		= false;
+		uint8_t 			_num				= 0;
 
 		adri_socket(int port);
 		adri_socket(int port, String espUi);
