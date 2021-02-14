@@ -1,14 +1,14 @@
 #include "adri_espwebserver.h"
 
 
-#include <adri_tools.h>
+#include <adri_tools_v2.h>
 
 
 #define DBG_OUTPUT_PORT Serial
 // #define DEBUG
 
-const char* fsName = "SPIFFS";
-SPIFFSConfig fileSystemConfig = SPIFFSConfig();
+const char* fsName = "LittleFS";
+LittleFSConfig fileSystemConfig = LittleFSConfig();
 
 String unsupportedFiles = String();
 
@@ -68,6 +68,8 @@ void adri_socketClient::webSocketEvent(WStype_t type, uint8_t * payload, size_t 
             break;
         case WStype_PONG:
             break;
+        default:
+        	break;
     }
 
 }
@@ -78,8 +80,8 @@ void adri_socketClient::sendTXT( String msg) {
 
 void adri_socketClient::parse(String msg) {
 
-	String op 		= literal_value("op", 	msg);
-	String value 	= literal_value("cmd", 	msg);
+	String op 		= adri_toolsv2Ptr_get()->literal_value("op", 	msg);
+	String value 	= adri_toolsv2Ptr_get()->literal_value("cmd", 	msg);
 	Serial.printf("\n[parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
@@ -150,26 +152,30 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
 
     switch(type) {
         case WStype_DISCONNECTED:
-            DBG_OUTPUT_PORT.printf("[%u] Disconnected!\n", num);
+            DBG_OUTPUT_PORT.printf("\n[%u] Disconnected!\n", num);
             _isConnected = false;
             break;
         case WStype_CONNECTED:
             {
                 IPAddress ip = _socket.remoteIP(num);
-                DBG_OUTPUT_PORT.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+                DBG_OUTPUT_PORT.printf("\n[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
 				_num = num;
 				// send message to client
 				// _socket.sendTXT(num, "Connected");
-				
 				#ifdef ESPUI
 				esp_ui.handleWebpage();
 				#endif
-
+				
 				_isConnected = true;
+
+				if (_whenIsConnected != NULL) _whenIsConnected();
+
             }
             break;
         case WStype_TEXT:
-            DBG_OUTPUT_PORT.printf("[%u] get Text: %s\n", num, payload);
+            #ifdef DEBUG
+            DBG_OUTPUT_PORT.printf("[%u] get Text: %s\n", num, payload);	
+            #endif
             char buff[100];
             sprintf(buff, "%s", payload);
 			_num = num;
@@ -188,10 +194,12 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
             // send message to client
             // _socket.sendBIN(num, payload, length);
             break;
+        default: break;
     }
 
 }
 void adri_socket::broadcastTXT(String msg) {
+	if (!_isConnected) return;
 	_socket.broadcastTXT(msg);
 }
 void adri_socket::sendTXT(uint8_t num, String msg) {
@@ -203,9 +211,11 @@ boolean adri_socket::isConnected() {
 
 void adri_socket::parse(String msg) {
 
-	String op 		= literal_value("op", 	msg);
-	String value 	= literal_value("cmd", 	msg);
-	Serial.printf("\n[adri_socket::parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());
+	String op 		= adri_toolsv2Ptr_get()->literal_value("op", 	msg);
+	String value 	= adri_toolsv2Ptr_get()->literal_value("cmd", 	msg);
+	#ifdef DEBUG
+	Serial.printf("\n[adri_socket::parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());	
+	#endif
 	String sOp = "op";
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
@@ -597,7 +607,8 @@ bool adri_webserver::handleFileRead(String path) {
 	}
 
 	if (path.endsWith("/")) {
-		path += "index.htm";
+		if (!_fs->exists("/index.htm")) path += "index.html";
+		else path += "index.htm";
 	}
 
 	String contentType;
@@ -1028,7 +1039,7 @@ void adri_webserver::handleGetEdit() {
 #endif
 
 /*
-	 Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on SPIFFS).
+	 Checks filename for character combinations that are not supported by FSBrowser (alhtough valid on LittleFS).
 	 Returns an empty String if supported, or detail of error(s) if unsupported
 */
 String checkForUnsupportedPath(String filename) {
