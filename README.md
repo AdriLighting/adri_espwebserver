@@ -11,11 +11,21 @@ adri_espwebserver               = https://github.com/AdriLighting/adri_espwebser
 adri_httparseurl                = https://github.com/AdriLighting/adri_httparseurl
 adri_tools_v2                   = https://github.com/AdriLighting/adri_tools_v2
 
-esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
-
 ArduinoJson                     = https://github.com/bblanchon/ArduinoJson
 WebSockets                      = https://github.com/Links2004/arduinoWebSockets
 ESPAsyncTCP                     = https://github.com/me-no-dev/ESPAsyncTCP
+
+framework                       = https://github.com/esp8266/Arduino/tree/master/libraries
+Hash                            = 
+ESP8266HTTPClient               = 
+ESP8266WiFi                     = 
+ESP8266WebServer                = 
+Ethernet(esp8266)               = 
+SPI                             = 
+LittleFS(esp8266)               = 
+ArduinoOTA                      = 
+ESP8266mDNS                     = 
+
 </details>
 Dependency Graph
 <details>
@@ -27,7 +37,7 @@ Dependency Graph
 |   |-- [ESP8266WebServer] 1.0
 |   |   |-- [ESP8266WiFi] 1.0
 |   |-- [ESP8266WiFi] 1.0
-|   |-- [WebSockets] 2.2.1
+|   |-- [WebSockets] 2.3.5
 |   |   |-- [ESP8266WiFi] 1.0
 |   |   |-- [ESPAsyncTCP] 1.2.2
 |   |   |   |-- [ESP8266WiFi] 1.0
@@ -35,6 +45,8 @@ Dependency Graph
 |   |   |   |-- [SPI] 1.0
 |   |   |-- [SPI] 1.0
 |   |   |-- [Hash] 1.0
+|   |   |-- [ESP8266WebServer] 1.0
+|   |   |   |-- [ESP8266WiFi] 1.0
 |   |-- [adri_httparseurl] 1.0.0
 |   |   |-- [adri_tools_v2] 1.0.0
 |   |   |   |-- [ESP8266WiFi] 1.0
@@ -59,9 +71,9 @@ Dependency Graph
 
 adri_espwebserver
 <details>
+<pre>
 platformio.ini
 <details>
-<pre>
 [env:nodemcuv2]
 platform=espressif8266
 board=nodemcuv2
@@ -72,8 +84,8 @@ upload_speed=921600
 [platformio]
 src_dir= ${env.src_dir}
 
-</pre>
 </details>
+</pre>
 <pre>
 Librairies
 <details>
@@ -83,11 +95,21 @@ adri_tools_v2                   = https://github.com/AdriLighting/adri_tools_v2
 adri_timer                      = https://github.com/AdriLighting/adri_timer
 adri_httparseurl                = https://github.com/AdriLighting/adri_httparseurl
 
-esp8266/arduino                 = https://github.com/esp8266/Arduino/tree/master/libraries
-
 ArduinoJson                     = https://github.com/bblanchon/ArduinoJson
 WebSockets                      = https://github.com/Links2004/arduinoWebSockets
 ESPAsyncTCP                     = https://github.com/me-no-dev/ESPAsyncTCP
+
+framework                       = https://github.com/esp8266/Arduino/tree/master/libraries
+ESP8266WebServer                = 
+ESP8266WiFi                     = 
+ESP8266mDNS                     = 
+LittleFS(esp8266)               = 
+Hash                            = 
+ESP8266HTTPClient               = 
+Ethernet(esp8266)               = 
+SPI                             = 
+ArduinoOTA                      = 
+
 </details>
 Dependency Graph
 <details>
@@ -111,7 +133,7 @@ Dependency Graph
 |   |-- [ESP8266WebServer] 1.0
 |   |   |-- [ESP8266WiFi] 1.0
 |   |-- [ESP8266WiFi] 1.0
-|   |-- [WebSockets] 2.2.1
+|   |-- [WebSockets] 2.3.5
 |   |   |-- [ESP8266WiFi] 1.0
 |   |   |-- [ESPAsyncTCP] 1.2.2
 |   |   |   |-- [ESP8266WiFi] 1.0
@@ -119,6 +141,8 @@ Dependency Graph
 |   |   |   |-- [SPI] 1.0
 |   |   |-- [SPI] 1.0
 |   |   |-- [Hash] 1.0
+|   |   |-- [ESP8266WebServer] 1.0
+|   |   |   |-- [ESP8266WiFi] 1.0
 |   |-- [adri_httparseurl] 1.0.0
 |   |   |-- [adri_tools_v2] 1.0.0
 |   |   |   |-- [ESP8266WiFi] 1.0
@@ -151,6 +175,5 @@ Dependency Graph
 |   |-- [adri_timer] 1.0.0
 |-- [LittleFS(esp8266)] 0.1.0</details>
 </pre>
-
 </details>
 <hr>
