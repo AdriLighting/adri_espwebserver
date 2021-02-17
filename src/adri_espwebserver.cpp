@@ -5,7 +5,7 @@
 
 
 #define DBG_OUTPUT_PORT Serial
-// #define DEBUG
+#define DEBUG
 
 const char* fsName = "LittleFS";
 LittleFSConfig fileSystemConfig = LittleFSConfig();
@@ -352,7 +352,10 @@ void adri_webserver::initialize (int port) {
 
 
 			if (requestReponse_array[pos]->_mod == requestType_name) {
-
+	#ifdef DEBUG
+		DBG_OUTPUT_PORT.print("parseRequest : ");
+		DBG_OUTPUT_PORT.println(parseRequest);
+	#endif
 				uri.remove(0, 1);
 				parseRequest = "&" + uri + "=";
 
@@ -374,11 +377,17 @@ void adri_webserver::initialize (int port) {
 				}		
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
 					if (!handleFileRead(requestReponse_array[pos]->_SPIFFwebpage)) replyBadRequest(requestReponse_array[pos]->_SPIFFwebpage + " : not found");
-				}						
+				}
+				// if (requestReponse_array[pos]->_reponseMod == requestReponseType_none) {
+				// 	replyOK();
+				// }											
 			}
 
 			if (requestReponse_array[pos]->_mod == requestType_wParam) {
-
+	#ifdef DEBUG
+		DBG_OUTPUT_PORT.print("parseRequest : ");
+		DBG_OUTPUT_PORT.println(parseRequest);
+	#endif
 				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
 
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
@@ -396,7 +405,10 @@ void adri_webserver::initialize (int port) {
 				}
 				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
 					if (!handleFileRead(requestReponse_array[pos]->_SPIFFwebpage)) replyBadRequest(requestReponse_array[pos]->_SPIFFwebpage + " : not found");
-				}				
+				}
+				// if (requestReponse_array[pos]->_reponseMod == requestReponseType_none) {
+				// 	replyOK();
+				// }									
 			}
 
 			
