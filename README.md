@@ -4,6 +4,28 @@
 - Facilite la configuration du serveur et des requête.
 - Automatise le traitement des requêtes.
 
+## Quickstart
+Static WebSockets and Webserver object 
+```c++
+adri_webserver      clientServer(80); // instance adri_webserver    - ESP8266WebServer _server
+adri_socket         socketServer(81); // instance adri_socket       - WebSocketsServer _socket
+```
+setup
+```c++
+clientServer.filesystem_ok(true);       // ENABLED FILE SYSTEM BROWSER
+clientServer.filesystem_set(&LittleFS);
+clientServer.initialize(80);
+clientServer.begin();
+
+socketServer.setup();
+```
+loop
+```c++
+clientServer.handleLoop();
+socketServer.loop();
+```
+see https://github.com/AdriLighting/adri_httparseurl for the request management.
+
 <pre>
 Librairies
 <details>
@@ -79,6 +101,8 @@ platform=espressif8266
 board=nodemcuv2
 framework=arduino
 lib_ignore=WiFi101
+board_build.filesystem=littlefs
+board_build.ldscript=eagle.flash.4m3m.ld
 lib_extra_dirs= ${env.lib_extra_dirs}
 upload_speed=921600
 [platformio]
@@ -175,5 +199,6 @@ Dependency Graph
 |   |-- [adri_timer] 1.0.0
 |-- [LittleFS(esp8266)] 0.1.0</details>
 </pre>
+
 </details>
 <hr>
