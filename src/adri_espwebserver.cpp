@@ -52,9 +52,7 @@ void adri_socketClient::webSocketEvent(WStype_t type, uint8_t * payload, size_t 
 	switch(type) {
 		case WStype_DISCONNECTED:
 			break;
-		case WStype_CONNECTED: {
-
-		}
+		case WStype_CONNECTED:
 			break;
 		case WStype_TEXT:
 			sprintf(webSocketClient_buff, "%s", payload);
@@ -62,7 +60,6 @@ void adri_socketClient::webSocketEvent(WStype_t type, uint8_t * payload, size_t 
 			else 					parse(String(webSocketClient_buff));
 			break;
 		case WStype_BIN:
-			// hexdump(payload, length);
 			break;
         case WStype_PING:
             break;
@@ -87,9 +84,11 @@ void adri_socketClient::parse(String msg) {
 	#ifdef ADRI_WEBSERVER_REPONSE_H
 	for (int i = 0; i < requestReponse_cnt; ++i)
 	{ 
-
-		if (requestReponse_array[i]->_protocol != requestProtocol_socket) continue;
-
+		if (requestReponse_array[i]->_protocol != requestProtocol_any) {
+			if (requestReponse_array[i]->_protocol != requestProtocol_httpSocket) {
+				if (requestReponse_array[i]->_protocol != requestProtocol_socket) continue;
+			} 
+		}
 
 		String reponse;
 
@@ -102,23 +101,10 @@ void adri_socketClient::parse(String msg) {
 
 		if (pos < 0) continue;
 
-		if (requestReponse_array[pos]->_mod == requestType_name) {
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
 
-			uri.remove(0, 1);
-			parseRequest = "&" + uri + "=";
-
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
-
-			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-		}
-
-		if (requestReponse_array[pos]->_mod == requestType_wParam) {
-
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
-
-			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-		}
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
 
 		break;
 
@@ -222,7 +208,11 @@ void adri_socket::parse(String msg) {
 	for (int i = 0; i < requestReponse_cnt; ++i)
 	{ 
 
-		if (requestReponse_array[i]->_protocol != requestProtocol_socket) continue;
+		if (requestReponse_array[i]->_protocol != requestProtocol_any) {
+			if (requestReponse_array[i]->_protocol != requestProtocol_httpSocket) {
+				if (requestReponse_array[i]->_protocol != requestProtocol_socket) continue;
+			} 
+		}
 
 		String reponse;
 		String sOp;
@@ -236,28 +226,19 @@ void adri_socket::parse(String msg) {
 
 		if (pos < 0) continue;
 
-		if (requestReponse_array[pos]->_mod == requestType_name) {
+		#ifdef DEBUG
+			DBG_OUTPUT_PORT.println();
+			DBG_OUTPUT_PORT.print("parseRequest : ");
+			DBG_OUTPUT_PORT.println(parseRequest);
+		#endif
 
-			uri.remove(0, 1);
-			parseRequest = "&" + uri + "=";
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
-
-			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-		}
-
-		if (requestReponse_array[pos]->_mod == requestType_wParam) {
-
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
-			if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
-
-			if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-			if (requestReponse_array[pos]->_reponseMod 	== requestReponseType_jsonFromList) {
-				requestReponse_reponse_fromList(pos, sOp, &reponse);
-				// fsprintf("\nreposne: %d\n%S\n",cnt, reponse.c_str());				
-			}	
-						
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
+		if (requestReponse_array[pos]->_reponseMod 	== requestReponseType_jsonFromList) {
+			requestReponse_reponse_fromList(pos, sOp, &reponse);
+			// fsprintf("\nreposne: %d\n%S\n",cnt, reponse.c_str());				
 		}
 
 		break;
@@ -335,81 +316,59 @@ void adri_webserver::initialize (int port) {
 	for (int i = 0; i < requestReponse_cnt; ++i)
 	{ 
 
-		if (requestReponse_array[i]->_protocol != requestProtocol_http) continue;
+		if (requestReponse_array[i]->_protocol != requestProtocol_any) {
+			if (requestReponse_array[i]->_protocol != requestProtocol_httpSocket) {
+				if (requestReponse_array[i]->_protocol != requestProtocol_http) continue;
+			} 
+		}
 
 		_server.on(requestReponse_array[i]->_name, HTTP_GET, [this]() {
 
-			String reponse;
-			String op = "op";
+		String reponse;
+		String op = "op";
 
-			String parseRequest;
-			request_param_get(&parseRequest);
+		String parseRequest;
+		request_param_get(&parseRequest);
 
-			String uri = ESP8266WebServer::urlDecode(_server.uri()); 
+		String uri = ESP8266WebServer::urlDecode(_server.uri()); 
 
-			int pos = 0;
-			requestReponse_search(uri, &pos);
+		int pos = 0;
+		requestReponse_search(uri, &pos);
 
 
-			if (requestReponse_array[pos]->_mod == requestType_name) {
-	#ifdef DEBUG
-		DBG_OUTPUT_PORT.print("parseRequest : ");
-		DBG_OUTPUT_PORT.println(parseRequest);
-	#endif
-				uri.remove(0, 1);
-				parseRequest = "&" + uri + "=";
+		#ifdef DEBUG
+			DBG_OUTPUT_PORT.println();
+			DBG_OUTPUT_PORT.print("parseRequest : ");
+			DBG_OUTPUT_PORT.println(parseRequest);
+		#endif
+		// uri.remove(0, 1);
+		// parseRequest = "&" + uri + "=";
 
-				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) requestReponse_array[pos]->_func(parseRequest); 
-				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);			
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromFunc) 
+			requestReponse_array[pos]->_func(parseRequest); 
 
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromList) {
-					boolean cnt = requestReponse_reponse_fromList(pos, op, &reponse);				
-					if (cnt) _server.send(200, "application/json", reponse);
-					else {
-						request_http_noreponse_set_json(&reponse);
-						_server.send(200, "application/json", reponse);
-					}
-				}
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromListForce) {
-					requestReponse_reponse_fromListForce(pos, op, &reponse);		
-					_server.send(200, "application/json", reponse);
-				}		
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
-					if (!handleFileRead(requestReponse_array[pos]->_SPIFFwebpage)) replyBadRequest(requestReponse_array[pos]->_SPIFFwebpage + " : not found");
-				}
-				// if (requestReponse_array[pos]->_reponseMod == requestReponseType_none) {
-				// 	replyOK();
-				// }											
+		if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) 
+			requestReponse_pareseUrl_fromList(pos, parseRequest);			
+
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) 
+			requestReponse_array[pos]->_funcReponse(); 
+		
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromList) {
+			boolean cnt = requestReponse_reponse_fromList(pos, op, &reponse);				
+			if (cnt) _server.send(200, "application/json", reponse);
+			else {
+				request_http_noreponse_set_json(&reponse);
+				_server.send(200, "application/json", reponse);
 			}
-
-			if (requestReponse_array[pos]->_mod == requestType_wParam) {
-	#ifdef DEBUG
-		DBG_OUTPUT_PORT.print("parseRequest : ");
-		DBG_OUTPUT_PORT.println(parseRequest);
-	#endif
-				if (requestReponse_array[pos]->_parseMod == requestParseCmd_fromList) requestReponse_pareseUrl_fromList(pos, parseRequest);
-
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_fromFunc) requestReponse_array[pos]->_funcReponse(); 
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromList) {
-					boolean cnt = requestReponse_reponse_fromList(pos, op, &reponse);				
-					if (cnt) _server.send(200, "application/json", reponse);
-					else {
-						request_http_noreponse_set_json(&reponse);
-						_server.send(200, "application/json", reponse);
-					}
-				}
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromListForce) {
-					requestReponse_reponse_fromListForce(pos, op, &reponse);		
-					_server.send(200, "application/json", reponse);
-				}
-				if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
-					if (!handleFileRead(requestReponse_array[pos]->_SPIFFwebpage)) replyBadRequest(requestReponse_array[pos]->_SPIFFwebpage + " : not found");
-				}
-				// if (requestReponse_array[pos]->_reponseMod == requestReponseType_none) {
-				// 	replyOK();
-				// }									
-			}
+		}
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_jsonFromListForce) {
+			requestReponse_reponse_fromListForce(pos, op, &reponse);		
+			_server.send(200, "application/json", reponse);
+		}		
+		if (requestReponse_array[pos]->_reponseMod == requestReponseType_SPIFFwebpage) {
+			if (!handleFileRead(requestReponse_array[pos]->_SPIFFwebpage)) 
+				replyBadRequest(requestReponse_array[pos]->_SPIFFwebpage + " : not found");
+		}
 
 			
 		});
