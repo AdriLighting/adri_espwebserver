@@ -1,0 +1,442 @@
+body {
+    font-family: "Lato", sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+/*
+.content {
+    float: left;
+    width: 85%;
+    padding: 0 4%;
+    overflow: hidden;
+    margin-left: 15%; 
+    font-size: 28px; 
+}*/
+div.content {
+  margin-left: 250px;
+  padding: 1px 16px;
+  height: 1000px;
+}
+
+.form-inline {  
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+}
+.form-inline label {
+  margin: 5px 10px 5px 0;
+  width: 15%;
+}
+.myProgress-card {
+  width: 95%;
+  background-color: #ddd;
+  margin: 5px 15px 5px 10px;
+
+}
+.myBar-card {
+  width: 50%;
+  height: 30px;
+  background-color: #4CAF50;
+
+}  
+
+.color-grey,.color-hover-grey:hover,.color-gray,.color-hover-gray:hover{color:#000!important;background-color:#d3d3d3!important}
+.color-gray-dark,.color-hover-gray-dark:hover{color:#000!important;background-color:#1a1a1a!important}
+.blue,.hover-blue:hover{color:#fff!important;background-color:#2196F3!important}
+
+.container,.panel{
+  padding:0.01em 16px
+  }.panel
+  {margin-top:16px;
+    margin-bottom:16px
+  }
+
+.vertical-middle {
+  vertical-align: middle;
+}
+.m-b-10{
+  margin-bottom: 10px;
+}
+.m-t-10{
+  margin-top: 10px;
+}
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION SIDEBAR */
+.sidenav {
+    margin: 0;
+    padding: 0;
+    width: 250px;
+    background-color: #f1f1f1;
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    background-color: #111;
+}
+.sidenav a {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+}
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+.sidenavitem a{
+    clear: both;
+    padding: 8px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.sidenavitem label{
+  padding: 8px;
+  color: white;
+}
+.sidenavitem label.textright {
+  float: right;
+}  
+.sidenavitem label.textleft {
+  float: left;
+}  
+.sidenavitem label.little {
+  float: left;
+  color: #818181;
+  cursor: pointer;
+}  
+.sidenavitem label.little:hover {
+  color: #f1f1f1;
+}  
+
+.sidenavitem p{
+  padding: 8px;
+  color: white;
+}
+.sidenavitem p.textright {
+  float: right;
+}  
+.sidenavitem p.textleft {
+  float: left;
+}        
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION SIDEBAR */
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION BUTTON */
+.button {
+  background-color: #666666;
+  border: none;
+  color: white;
+  padding: 10px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+.button.rounded {
+  border-radius: 5px;
+}    
+.button.inline {
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
+}         
+.button:hover {
+  background-color: #595959;
+  color: black;
+  transition-duration: 0.4s;
+}
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION BUTTON */
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION TEXT+INPUT+BUTTON */
+.input-text {
+  margin-top: 0.5%;
+  padding:8px;
+  display:block;
+  border:none;
+  border-bottom:1px solid #ccc;
+  width:100%
+}
+.input-text.inline {
+  vertical-align: middle;
+  margin: 5px 5px 10px 0;
+  padding: 10px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  width: 60%
+}
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION TEXT+INPUT+BUTTON*/
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION SLIDER */
+.slider {
+  margin-top: 0.5%;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  border-radius: 5px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+.slider.inline {
+  vertical-align: middle;
+  margin: 5px 5px 10px 0;
+  padding: 8px;
+  border: 1px solid #ddd;
+  width:60%
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%; 
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #000000;
+  cursor: pointer;
+}
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION SLIDER*/
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION TOGGLE SWITCH */
+.toggle-card {  
+  margin: 0px 0px 0px 0px;
+}
+
+.toggle-label {
+  display: inline-block;
+  width: 15%;
+} 
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 180px;
+  height: 34px;
+  margin: 5px 0px 5px 33%;
+  /*margin-right: 10px;*/
+}
+.switch-label {
+  padding: 1%
+}
+.switch input {display:none;}
+
+.toggle {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ca2222;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+.toggle.card {
+  /*margin-left: 50px;*/
+  /*width: 50%;*/
+}
+
+.toggle:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .toggle {
+  background-color: #2ab934;
+}
+
+input:focus + .toggle {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .toggle:before {
+  -webkit-transform: translateX(148px);
+  -ms-transform: translateX(148px);
+  transform: translateX(148px);
+}
+
+.on
+{
+  display: none;
+}
+
+.on, .off
+{
+  color: white;
+  position: absolute;
+  transform: translate(-50%,-50%);
+  top: 50%;
+  left: 50%;
+  font-size: 10px;
+  font-family: Verdana, sans-serif;
+}
+
+input:checked+ .toggle .on
+{display: block;}
+
+input:checked + .toggle .off
+{display: none;}
+
+.toggle.round {
+  border-radius: 34px;
+}
+
+.toggle.round:before {
+  border-radius: 50%;}
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION TOGGLE SWITCH */
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION PROGRESSBAR */ 
+.myProgress {
+  width: 60%;
+  background-color: #ddd;
+  margin-bottom: 10px;
+}
+
+.myBar {
+  width: 1%;
+  height: 30px;
+  background-color: #4CAF50;
+}  
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION PROGRESSBAR */
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION CARD TITLE + VALUE */ 
+.card{
+  box-shadow:0 4px 10px 0 rgba(0,0,0,0.2),0 4px 20px 0 rgba(0,0,0,0.19);
+  transition: 0.3s;
+  border-radius: 8px;      
+  margin-bottom: 10px;    
+  padding: 4px;
+}  
+.card:hover {
+  box-shadow: 0 8px 20px 0 rgba(0,0,0,0.3),0 4px 20px 0 rgba(0,0,0,0.19);
+}        
+.card label.test{font-size: 35px;}
+.card header{font-size: 35px;border-radius: 4px; margin-bottom: 5px;  }
+
+label.lblValue { float: left; width: 50%; }
+span.lblValue { margin-left: 50%; display: block; }  
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION CARD TITLE + VALUE */
+
+
+
+/* Remove extra left and right margins, due to padding in columns */
+.row {margin: 0 -5px;}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+/* Float four columns side by side */
+.column {
+  margin-top: 15px;
+  float: left;
+  width: 33%;
+  padding: 0 10px;
+}
+
+
+
+/* >>>>>>>>>>>>>>>>>>>>>>>>>>> REGION RESPONSIVE */ 
+@media screen and (max-width: 1600px) {
+  .column {
+    width: 50%;
+  }   
+  .switch {
+
+    margin: 5px 0px 5px 33%;
+    /*margin-right: 10px;*/
+  }    
+}   
+@media screen and (max-width: 1200px) {
+  .column {
+    width: 100%;
+    display: block;
+  }    
+   
+} 
+@media screen and (max-width: 1000px) {
+  .toggle-label, .form-inline label {
+    font-size: 15px;
+  }   
+
+} 
+@media (max-width: 900px) {
+  .form-inline input.input-text {
+    width: 100%;
+  }
+  .form-inline label {
+    /*display: middle;*/
+    text-align: center;
+    width: 100%;
+    
+  }      
+  .toggle-label {
+    display: block;
+    width: 100%;
+  }    
+  .form-inline {
+    margin: 0 0 15px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+}      
+@media screen and (max-width: 800px) {
+  .column {
+    font-size: 15px;
+  }    
+}       
+
+@media screen and (max-width: 700px) {
+  .sidenav {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+  /*.sidenav a {float: left;}*/
+  div.content {margin-left: 0;}
+}
+@media screen and (max-width: 600px) {
+  .column {
+    font-size: 14px;
+    width: 100%;
+    display: block;
+  }
+  .switch {
+
+    margin: 5px 0px 5px 23%;
+    /*margin-right: 10px;*/
+  }    
+}
+@media screen and (max-width: 400px) {
+  .sidenav a {
+    text-align: center;
+    float: none;
+  }
+  
+}  
+/* <<<<<<<<<<<<<<<<<<<<<<<<<<< ENDREGION RESPONSIVE */
+
+
+
+
