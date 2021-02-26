@@ -8,6 +8,10 @@ var socket_keep_alive_period  = 500;
 var socket_keep_alive_enabled = false;
 var response_display          = true;
 
+
+// 	###################################################################################### ["4","prise",1,1,1,2,14,"_id"]
+
+
 // 	###################################################################################### FUNCTIONS
 // 	
 // 	###########################################
@@ -187,7 +191,7 @@ function request_format_socket(name, arg, value){
 }
 
 function request_send(name, arg, value){
-//	console.log(" window.location.hostname");
+	// console.log(" window.location.hostname");
 //	request_http("/json/currentSetting.json");
 	var msg="";
 	if (socket_connected) {
@@ -218,7 +222,9 @@ function request_http(msg){
 	xhttp.open("GET", msg, true);
 	xhttp.send();	
 }
+function request_button(id){
 
+}
 
 // 	#############################################################################################
 // 	######################################################################################
@@ -240,23 +246,15 @@ function server_response(json) {
 
 	if (response_display) {console.log('\tjson:\n');console.log(response);console.log("\n");}
 
-	mModulesList_array_parse(response, 0);
-	mModulesValue_array_parse(response, "mValue", 0);
-	mModulesValue_array_parse(response, "mValues", 0);
 
-	gui_update(response);
 }
 
-// INITIIALISE
+function json_array_parse(val) {
+	for (const okey of  Object.entries(val)) {
+		console.log("\t" + "\t" + okey[0]  + " : " + okey[1]);
+	}
+}
+
+
 
 socket_initialize();
-
-
-$(document).ready(function() {
-
-})
-
-
-
-
-

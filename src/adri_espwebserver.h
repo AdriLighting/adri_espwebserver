@@ -1,6 +1,5 @@
 #ifndef ADRI_ESPWEBSERVER_H
 	#define ADRI_ESPWEBSERVER_H
-
 	#include <arduino.h>
 
 	#include <ESP8266WiFi.h>
@@ -18,26 +17,27 @@
 
 	#include <adri_webserver_reponselist.h>
 	#include <adri_webserver_parsecommand.h>
-
 	#include <adri_webserver_reponse.h>
 	
 	#include "config.h"
 	#ifdef ESPUI
-		#include "adri_espwebserver_ui.h"
+		#include "esp_ui.h"
 	#endif
 
 	#define FSB_BROWSER
 
 	String checkForUnsupportedPath(String filename) ;
 
-	#ifdef ESPUI
-		extern ADRIEsp_ui esp_ui;
-	#endif
 
 	class adri_webserver
 	{
 
 	private:
+		
+		#ifdef ESPUI
+			espUI 			* _espUI = nullptr;
+		#endif	
+
         FS * 			_fs;
         bool 			_fsOk;
 		File 			_fsUploadFile;
@@ -64,10 +64,7 @@
 
     	adri_webserver(int port);
     	
-
-    	#ifdef ESPUI
-        void 	espui_initialize();  
-        #endif
+  	
 	    bool 	handleFileRead(String path);
         void 	handleLoop();  
         void 	request_param_get(String * result);
@@ -87,7 +84,9 @@
 	typedef void (*adri_socket_func)();  
 	class adri_socket
 	{
-
+		#ifdef ESPUI
+			espUI 			* _espUI = nullptr;
+		#endif	
 	public:
 		adri_socket_func 	_whenIsConnected  	= NULL;	
 		WebSocketsServer	_socket;		
@@ -97,9 +96,6 @@
 		adri_socket(int port);
 		adri_socket(int port, String espUi);
 
-    	#ifdef ESPUI
-        void espui_initialize();  
-        #endif
 
 		void parse(String);
 		void setup();

@@ -1,8 +1,6 @@
 #include "adri_espwebserver.h"
 
-
 #include <adri_tools_v2.h>
-
 
 #define DBG_OUTPUT_PORT Serial
 #define DEBUG
@@ -18,9 +16,6 @@ static const char FILE_NOT_FOUND[] PROGMEM = "FileNotFound";
 
 using namespace std::placeholders;
 
-#ifdef ESPUI
-	ADRIEsp_ui esp_ui(10); 
-#endif
 	
 adri_socketClient::adri_socketClient()
 {
@@ -121,11 +116,10 @@ adri_socket::adri_socket(int port) : _socket(port, "", "arduino")
 {
 }
 
-#ifdef ESPUI
-void adri_socket::espui_initialize(){esp_ui.socket_initialize(&_socket);}
-#endif
-
 void adri_socket::setup() {
+	#ifdef ESPUI
+		_espUI = espUI_ptrGet();
+	#endif	
     _socket.begin();
     _socket.onEvent(std::bind(&adri_socket::webSocketEvent, this, _1, _2, _3, _4));
 }
@@ -146,16 +140,17 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
                 IPAddress ip = _socket.remoteIP(num);
                 DBG_OUTPUT_PORT.printf("\n[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
 				_num = num;
-				// send message to client
-				// _socket.sendTXT(num, "Connected");
 				#ifdef ESPUI
-				esp_ui.handleWebpage();
+
+					if (_espUI != nullptr) {
+						_espUI->home_create();
+						_espUI->sidebar_create_label();
+						_espUI->_region = 0;
+					}
+					// _espUI->card_create_espInfos();
 				#endif
-				
 				_isConnected = true;
-
 				if (_whenIsConnected != NULL) _whenIsConnected();
-
             }
             break;
         case WStype_TEXT:
@@ -166,19 +161,9 @@ void adri_socket::webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, 
             sprintf(buff, "%s", payload);
 			_num = num;
 			parse(String(buff));
-			// parse(payload);
-            // send message to client
-            // _socket.sendTXT(num, "message here");
-
-            // send data to all connected clients
-            // _socket.broadcastTXT("message here");
             break;
         case WStype_BIN:
-            // DBG_OUTPUT_PORT.printf("[%u] get binary length: %u\n", num, length);
             hexdump(payload, length);
-
-            // send message to client
-            // _socket.sendBIN(num, payload, length);
             break;
         default: break;
     }
@@ -203,7 +188,23 @@ void adri_socket::parse(String msg) {
 	Serial.printf("\n[adri_socket::parse] op: %s - cmd: %s\n", op.c_str(), msg.c_str());	
 	#endif
 	String sOp = "op";
-
+	#ifdef ESPUI
+		if (op=="espUIRequest") {
+			if (_espUI != nullptr) {
+				_espUI->button_handle_espRest(value);
+				_espUI->user_button_loop(value);
+			}
+			return;
+		}
+		if (op=="espUI") {
+			if (value=="espUI_system")	{if (_espUI != nullptr) {_espUI->removeElements();_espUI->_upd_mod = 1;_espUI->_region = 1;}}
+			if (value=="espUI_wifi")	{if (_espUI != nullptr) {_espUI->removeElements();_espUI->_upd_mod = 2;_espUI->_region = 2;}}	
+			if (value=="espUI_main")	{if (_espUI != nullptr) {_espUI->removeElements();_espUI->home_create();	_espUI->_upd_mod = 0;_espUI->_region = 0;}}
+			if (value=="espUI_tools")	{if (_espUI != nullptr) {_espUI->removeElements();_espUI->tools_create();	_espUI->_upd_mod = 0;_espUI->_region = 3;}}	
+			if (value=="espUI_api")		{if (_espUI != nullptr) {_espUI->removeElements();_espUI->api_create();		_espUI->_upd_mod = 0;_espUI->_region = 4;}}								
+			return;						
+		}
+	#endif
 	#ifdef ADRI_WEBSERVER_REPONSE_H
 	for (int i = 0; i < requestReponse_cnt; ++i)
 	{ 
@@ -251,10 +252,6 @@ void adri_socket::parse(String msg) {
 adri_webserver::adri_webserver(int port) : _server(port) {
 	_fsOk = true;
 }
-
-#ifdef ESPUI
-	void adri_webserver::espui_initialize(){esp_ui.server_initialize(&_server);}
-#endif
 
 void adri_webserver::filesystem_set(FS * fs){
 	_fs = fs;
@@ -307,9 +304,11 @@ void adri_webserver::initialize (int port) {
 
 	// 
 	#ifdef ESPUI
-		esp_ui.begin();
+		_espUI = espUI_ptrGet();
+		if (_espUI != nullptr) _espUI->handleRootRegister();
+		else _server.on("/", std::bind(&adri_webserver::handleRoot, this));
 	#else
-		_server.on("/", 		std::bind(&adri_webserver::handleRoot, 	this));
+		_server.on("/", std::bind(&adri_webserver::handleRoot, this));
 	#endif
 
 	#ifdef ADRI_WEBSERVER_REPONSE_H
@@ -414,6 +413,9 @@ void adri_webserver::initialize (int port) {
       yield();
     });
 
+	#ifdef ESPUI
+		if (_espUI != nullptr) _espUI->handleAssetRegister();
+	#endif
 	_server.on("/status", 	HTTP_GET, 		std::bind(&adri_webserver::handleStatus, 		this));
 	_server.on("/list", 	HTTP_GET, 		std::bind(&adri_webserver::handleFileList, 		this));
 
@@ -670,32 +672,6 @@ String adri_webserver::sendNetworkStatus()
 	return values;
 }
 void adri_webserver::handleStatus() {
-	// #ifdef DEBUG
-	// 	DBG_OUTPUT_PORT.println("handleStatus");
-	// #endif
-	// FSInfo fs_info;
-	// String json;
-	// json.reserve(128);
-
-	// json = "{\"type\":\"";
-	// json += fsName;
-	// json += "\", \"isOk\":";
-	// if (_fsOk) {
-	// 	_fs->info(fs_info);
-	// 	json += F("\"true\", \"totalBytes\":\"");
-	// 	json += fs_info.totalBytes;
-	// 	json += F("\", \"usedBytes\":\"");
-	// 	json += fs_info.usedBytes;
-	// 	json += "\"";
-	// } else {
-	// 	json += "\"false\"";
-	// }
-	// json += F(",\"unsupportedFiles\":\"");
-	// json += unsupportedFiles;
-	// json += "\"}";
-
-	// _server.send(200, "application/json", json);
-
 	_server.send(200, "text/html", sendNetworkStatus());
 }
 
